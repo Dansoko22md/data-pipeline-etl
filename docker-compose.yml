@@ -1,0 +1,56 @@
+x-airflow-common:
+  &airflow-common
+  image: apache/airflow:2.8.1
+  depends_on:
+    - postgres
+  environment:
+    &airflow-common-env
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+    AIRFLOW__CORE__FERNET_KEY: "IxNyIGkzkCrPsX_hLgFab0YO5DANLBFXrkCrPEaJPdE="
+    AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+    # Optional: ensure AIRFLOW_HOME is consistent
+    AIRFLOW_HOME: /opt/airflow
+    PYTHONPATH: /opt/airflow
+  volumes:
+    - ./dags:/opt/airflow/dags
+    - ./scripts:/opt/airflow/scripts
+    - ./data:/opt/airflow/data
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+  
+  airflow-webserver:
+    <<: *airflow-common
+    ports:
+      - "8081:8080"
+    command: >
+      bash -c "
+        airflow db migrate &&
+        airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com &&
+        exec airflow webserver
+      "
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+  airflow-scheduler:
+    <<: *airflow-common
+    command: scheduler
+    depends_on:
+      airflow-webserver:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
