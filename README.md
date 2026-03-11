@@ -28,25 +28,32 @@ Phone,800,France
 
 ## Lancer le projet
 
-1. Démarrer les services (Webserver, Scheduler, Postgres) :
+1. Démarrer les services (Airflow, Postgres, Metabase) :
    ```bash
    docker-compose up -d
    ```
-2. Accéder à l’interface Airflow :
-   - http://localhost:8081
-   - Identifiants : `admin` / `admin`
+2. Accéder aux interfaces :
+   - **Airflow** : http://localhost:8081 (admin / admin)
+   - **Metabase** : http://localhost:3001 (Configuration initiale requise)
 
-## Pipeline ETL (Multi-tâches)
-Le pipeline est désormais divisé en trois étapes distinctes pour une meilleure robustesse :
-- **extract_task** : Lit les données brutes depuis `data/raw_data.csv`.
-- **transform_task** : Calcule le prix en euros (`price_eur`) en appliquant un taux de conversion.
-- **load_task** : Charge les données transformées dans la table `sales` de PostgreSQL.
+## Pipeline ETL (Multi-tâches & Robuste)
+Le pipeline est divisé en quatre étapes :
+- **cleanup_old_data** : Supprime les données incohérentes de la base Postgres.
+- **extract_task** : Lit `data/raw_data.csv` avec validation (vérifie si vide ou prix négatifs).
+- **transform_task** : Calcule le prix en euros (`price_eur`).
+- **load_task** : Charge les données finales dans PostgreSQL.
+
+## Visualisation (BI)
+Metabase est inclus pour créer des dashboards. Pour connecter Metabase à vos données :
+1. Choisissez **PostgreSQL** comme base de données.
+2. Host : `postgres` (si Metabase est dans le même réseau Docker) ou `localhost` (si accès externe).
+3. Port : `5432` (interne) ou `5433` (externe).
+4. Database/User/Pass : `airflow`.
 
 ## Architecture
-- **Airflow Webserver** : Interface utilisateur pour monitorer les DAGs.
-- **Airflow Scheduler** : Orchestrateur qui planifie et lance les tâches.
-- **PostgreSQL** : Base de données de métadonnées Airflow et destination du chargement ETL.
-- **Docker Compose** : Gestionnaire de conteneurs pour tout l'écosystème.
+- **Airflow** : Orchestration et validation.
+- **PostgreSQL** : Stockage des données (port 5433 pour accès externe).
+- **Metabase** : Visualisation BI (port 3000).
 
 ## PostgreSQL
 - Host : postgres

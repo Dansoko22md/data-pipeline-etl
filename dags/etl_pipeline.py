@@ -1,5 +1,6 @@
 from airflow import DAG
 from airflow.operators.python import PythonOperator
+from airflow.providers.postgres.operators.postgres import PostgresOperator
 from datetime import datetime
 from scripts import extract, transform, load
 
@@ -33,6 +34,14 @@ dag = DAG(
     tags=['example', 'etl']
 )
 
+# Tâche de nettoyage des anciennes données (optionnel, selon le besoin)
+cleanup_task = PostgresOperator(
+    task_id='cleanup_old_data',
+    postgres_conn_id='postgres_default',
+    sql="DELETE FROM sales WHERE price < 0;", # Exemple simple de nettoyage
+    dag=dag
+)
+
 extract_task = PythonOperator(
     task_id='extract_task',
     python_callable=extract_step,
@@ -51,4 +60,4 @@ load_task = PythonOperator(
     dag=dag
 )
 
-extract_task >> transform_task >> load_task
+cleanup_task >> extract_task >> transform_task >> load_task
