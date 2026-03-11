@@ -28,18 +28,25 @@ Phone,800,France
 
 ## Lancer le projet
 
-1. Démarrer les services :
+1. Démarrer les services (Webserver, Scheduler, Postgres) :
    ```bash
-   docker-compose up
+   docker-compose up -d
    ```
 2. Accéder à l’interface Airflow :
-   - http://localhost:8080
-   - Identifiants : admin / admin
+   - http://localhost:8081
+   - Identifiants : `admin` / `admin`
 
-## Pipeline ETL
-- **Extract** : Lecture du fichier CSV
-- **Transform** : Conversion du prix en euros
-- **Load** : Chargement dans PostgreSQL (table `sales`)
+## Pipeline ETL (Multi-tâches)
+Le pipeline est désormais divisé en trois étapes distinctes pour une meilleure robustesse :
+- **extract_task** : Lit les données brutes depuis `data/raw_data.csv`.
+- **transform_task** : Calcule le prix en euros (`price_eur`) en appliquant un taux de conversion.
+- **load_task** : Charge les données transformées dans la table `sales` de PostgreSQL.
+
+## Architecture
+- **Airflow Webserver** : Interface utilisateur pour monitorer les DAGs.
+- **Airflow Scheduler** : Orchestrateur qui planifie et lance les tâches.
+- **PostgreSQL** : Base de données de métadonnées Airflow et destination du chargement ETL.
+- **Docker Compose** : Gestionnaire de conteneurs pour tout l'écosystème.
 
 ## PostgreSQL
 - Host : postgres
