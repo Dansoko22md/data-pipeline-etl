@@ -40,26 +40,37 @@ Phone,800,France
 Le pipeline est divisé en quatre étapes :
 - **cleanup_old_data** : Supprime les données incohérentes de la base Postgres.
 - **extract_task** : Lit `data/raw_data.csv` avec validation (vérifie si vide ou prix négatifs).
-- **transform_task** : Calcule le prix en euros (`price_eur`).
+- **transform_task** : Calcule le prix en euros (`price_eur`), ajoute une **catégorie de prix** et un **horodatage de traitement**.
 - **load_task** : Charge les données finales dans PostgreSQL.
 
-## Visualisation (BI)
-Metabase est inclus pour créer des dashboards. Pour connecter Metabase à vos données :
-1. Choisissez **PostgreSQL** comme base de données.
-2. Host : `postgres` (si Metabase est dans le même réseau Docker) ou `localhost` (si accès externe).
-3. Port : `5432` (interne) ou `5433` (externe).
-4. Database/User/Pass : `airflow`.
+## Visualisation (BI) avec Metabase
+
+Metabase est inclus pour créer des dashboards. Suivez ces étapes pour une première visualisation :
+
+1. **Connexion initiale** : Accédez à [http://localhost:3001](http://localhost:3001).
+2. **Configuration de la base de données** :
+   - Type : **PostgreSQL**
+   - Host : `postgres`
+   - Port : `5432`
+   - Database/User/Pass : `airflow`
+3. **Créer un graphique (Exemple : Ventes par Catégorie)** :
+   - Cliquez sur **+ Nouveau** > **Question**.
+   - Sélectionnez votre base `airflow` et la table `sales`.
+   - Cliquez sur **Visualisation** et choisissez **Graphique en barres**.
+   - Regroupez par `price_category` et observez la répartition de vos produits !
 
 ## Architecture
 - **Airflow** : Orchestration et validation.
 - **PostgreSQL** : Stockage des données (port 5433 pour accès externe).
-- **Metabase** : Visualisation BI (port 3000).
+- **Metabase** : Visualisation BI (port 3001).
+- **Données enrichies** : Colonnes `price_category` (Bas/Milieu/Haut de gamme) et `processed_at`.
 
 ## PostgreSQL
-- Host : postgres
-- User : airflow
-- Password : airflow
-- DB : airflow
+- Host : `localhost` (externe) ou `postgres` (interne Docker)
+- Port : `5433` (externe) ou `5432` (interne)
+- User/Pass : `airflow` / `airflow`
+- DB : `airflow`
+- Table cible : `sales`
 
 ## Pour aller plus loin
 - Ajouter des transformations
