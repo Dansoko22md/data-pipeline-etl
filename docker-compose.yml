@@ -12,6 +12,7 @@ x-airflow-common:
     # Optional: ensure AIRFLOW_HOME is consistent
     AIRFLOW_HOME: /opt/airflow
     PYTHONPATH: /opt/airflow
+    AIRFLOW_CONN_POSTGRES_DEFAULT: postgresql://airflow:airflow@postgres:5432/airflow
   volumes:
     - ./dags:/opt/airflow/dags
     - ./scripts:/opt/airflow/scripts
